@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Weather & Travel Planner - Ứng dụng tra cứu thời tiết và quản lý lịch trình du lịch cá nhân phong cách Glassmorphism.">
+  <title>Weather & Travel Planner</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="theme-sunny">
+  <!-- Hiệu ứng nền trang trí phụ trợ -->
+  <div class="ambient-glow glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow glow-2" aria-hidden="true"></div>
+
+  <!-- Thông báo trạng thái người dùng (Toast Notification) -->
+  <div id="toastNotification" class="toast-notification" role="status" aria-live="polite"></div>
+
+  <!-- Header chính của ứng dụng -->
+  <header class="app-header glass-card">
+    <div class="header-container">
+      <div class="logo-group">
+        <span class="logo-icon" aria-hidden="true">✈️🌤️</span>
+        <div>
+          <h1 class="app-title">Weather & Travel Planner</h1>
+          <p class="app-subtitle">Tra cứu thời tiết thông minh & Quản lý lịch trình du lịch chuyên nghiệp</p>
+        </div>
+      </div>
+      <!-- Widget Đếm ngược nhanh trên Header -->
+      <div class="header-countdown glass-card-nested" id="headerCountdownWidget">
+        <div class="countdown-label-group">
+          <label for="departureDatePicker" class="input-label">📅 Ngày khởi hành:</label>
+          <input type="date" id="departureDatePicker" class="custom-date-input" aria-label="Chọn ngày khởi hành chuyến đi">
+        </div>
+        <div class="countdown-display" id="countdownDisplay" role="timer" aria-live="polite">
+          <span class="countdown-placeholder">Vui lòng chọn ngày</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Bố cục chính 2 cột -->
+  <main class="main-layout container">
+    <!-- CỘT TRÁI: MODULE THỜI TIẾT & GỢI Ý THÔNG MINH -->
+    <aside class="left-column">
+      <!-- Panel Thời tiết -->
+      <section class="glass-card weather-panel" aria-labelledby="weatherHeading">
+        <div class="panel-header">
+          <h2 id="weatherHeading" class="panel-title">🌤️ Thời Tiết Điểm Đến</h2>
+          <span class="badge-mockup">Mô phỏng</span>
+        </div>
+
+        <div class="form-group city-select-group">
+          <label for="citySelect" class="input-label">Chọn điểm đến du lịch:</label>
+          <div class="select-wrapper">
+            <select id="citySelect" class="custom-select" aria-label="Chọn điểm đến du lịch">
+              <!-- Render động từ JS -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Thẻ tóm tắt thời tiết -->
+        <div class="weather-card glass-card-nested" id="weatherCard">
+          <div class="weather-main-info">
+            <div class="weather-icon-wrapper" id="weatherIcon" aria-hidden="true">☀️</div>
+            <div class="weather-temp-group">
+              <span class="weather-temp" id="weatherTemp">--°C</span>
+              <span class="weather-condition" id="weatherCondition">Đang tải...</span>
+            </div>
+          </div>
+          <div class="weather-details-grid">
+            <div class="weather-detail-item">
+              <span class="detail-label">Độ ẩm</span>
+              <span class="detail-value" id="weatherHumidity">--%</span>
+            </div>
+            <div class="weather-detail-item">
+              <span class="detail-label">Gió</span>
+              <span class="detail-value" id="weatherWind">-- km/h</span>
+            </div>
+            <div class="weather-detail-item full-width">
+              <span class="detail-label">Đánh giá chung</span>
+              <span class="detail-value" id="weatherDesc">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gợi ý thông minh (Smart Suggestions) -->
+        <div class="smart-suggestions glass-card-nested" id="smartSuggestionsContainer">
+          <h3 class="suggestions-title">💡 Gợi Ý Du Lịch Thông Minh</h3>
+          <ul class="suggestions-list" id="suggestionsList">
+            <!-- Render động từ JS -->
+          </ul>
+        </div>
+      </section>
+    </aside>
+
+    <!-- CỘT PHẢI: QUẢN LÝ LỊCH TRÌNH DU LỊCH -->
+    <section class="right-column glass-card itinerary-panel" aria-labelledby="itineraryHeading">
+      <div class="panel-header flex-between">
+        <div>
+          <h2 id="itineraryHeading" class="panel-title">📍 Lịch Trình Chuyến Đi</h2>
+          <p class="panel-desc">Lên kế hoạch các địa điểm yêu thích và theo dõi hành trình</p>
+        </div>
+        <button type="button" id="exportBtn" class="btn btn-secondary btn-icon" title="Xuất toàn bộ lịch trình ra file text">
+          <span aria-hidden="true">📥</span> Xuất lịch trình (.txt)
+        </button>
+      </div>
+
+      <!-- Form Thêm địa điểm -->
+      <form id="addLocationForm" class="add-location-form glass-card-nested" novalidate>
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="locationTitleInput" class="input-label">Tên địa điểm ghé thăm <span class="required">*</span></label>
+            <input type="text" id="locationTitleInput" class="custom-input" placeholder="Ví dụ: Thác Datanla, Quảng trường Lâm Viên..." required autocomplete="off">
+            <span class="form-error-msg" id="locationTitleError" aria-live="polite"></span>
+          </div>
+          <div class="form-group flex-1">
+            <label for="locationTimeInput" class="input-label">Thời gian dự kiến</label>
+            <input type="time" id="locationTimeInput" class="custom-input" aria-label="Thời gian dự kiến ghé thăm">
+          </div>
+          <div class="form-group form-btn-group">
+            <button type="submit" id="addLocationBtn" class="btn btn-primary">
+              <span aria-hidden="true">➕</span> Thêm địa điểm
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Thanh công cụ: Tìm kiếm, Lọc, Sắp xếp, Phân trang -->
+      <div class="controls-toolbar glass-card-nested">
+        <div class="toolbar-row">
+          <!-- Tìm kiếm -->
+          <div class="search-box">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Tìm kiếm địa điểm..." aria-label="Tìm kiếm theo tên địa điểm">
+            <button type="button" id="clearSearchBtn" class="btn-clear-search hidden" aria-label="Xóa từ khóa tìm kiếm">&times;</button>
+          </div>
+
+          <!-- Bộ lọc -->
+          <div class="filter-group">
+            <label for="statusFilter" class="input-label sr-only">Lọc theo trạng thái:</label>
+            <select id="statusFilter" class="custom-select select-sm" aria-label="Lọc theo trạng thái">
+              <option value="all">Tất cả địa điểm</option>
+              <option value="unvisited">Chưa đến</option>
+              <option value="visited">Đã đến</option>
+            </select>
+          </div>
+
+          <!-- Sắp xếp -->
+          <div class="sort-group">
+            <label for="sortBy" class="input-label sr-only">Sắp xếp theo:</label>
+            <select id="sortBy" class="custom-select select-sm" aria-label="Sắp xếp danh sách">
+              <option value="name-asc">Tên (A → Z)</option>
+              <option value="name-desc">Tên (Z → A)</option>
+              <option value="time-asc">Thời gian sớm nhất</option>
+              <option value="created-desc">Mới thêm gần đây</option>
+            </select>
+          </div>
+
+          <!-- Kích thước trang -->
+          <div class="pagesize-group">
+            <label for="pageSizeSelect" class="input-label label-inline">Hiển thị:</label>
+            <select id="pageSizeSelect" class="custom-select select-xs" aria-label="Số lượng mỗi trang">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="all">Tất cả</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Thanh thông tin thống kê tiến độ -->
+        <div class="itinerary-stats" id="itineraryStats">
+          <span id="statsTotalCount">Tổng cộng: 0 địa điểm</span>
+          <span class="stats-divider">|</span>
+          <span id="statsProgress">Đã hoàn thành: 0/0 (0%)</span>
+        </div>
+      </div>
+
+      <!-- Danh sách lịch trình -->
+      <div class="itinerary-list-wrapper">
+        <ul id="itineraryList" class="itinerary-list" aria-label="Danh sách các địa điểm trong lịch trình">
+          <!-- Render động từ JS -->
+        </ul>
+
+        <!-- Trạng thái trống (Empty State) -->
+        <div id="emptyState" class="empty-state hidden">
+          <div class="empty-icon" aria-hidden="true">🗺️</div>
+          <h3 class="empty-title">Chưa có địa điểm nào trong lịch trình!</h3>
+          <p class="empty-desc">Hãy nhập tên địa điểm và thời gian ghé thăm ở biểu mẫu bên trên để bắt đầu lập kế hoạch du lịch.</p>
+        </div>
+
+        <!-- Trạng thái không tìm thấy kết quả (No Search Results) -->
+        <div id="noResultsState" class="empty-state hidden">
+          <div class="empty-icon" aria-hidden="true">🔎</div>
+          <h3 class="empty-title">Không tìm thấy địa điểm phù hợp</h3>
+          <p class="empty-desc">Không có kết quả nào khớp với tiêu chí tìm kiếm hoặc bộ lọc hiện tại.</p>
+          <button type="button" id="resetFilterBtn" class="btn btn-secondary btn-sm">Xóa bộ lọc & tìm kiếm</button>
+        </div>
+      </div>
+
+      <!-- Điều hướng phân trang (Pagination) -->
+      <nav class="pagination-nav flex-between" id="paginationNav" aria-label="Phân trang danh sách lịch trình">
+        <div class="pagination-info" id="paginationInfo">
+          Đang hiển thị <span id="pageCurrentRange">0-0</span> trong tổng số <span id="pageTotalItems">0</span> địa điểm
+        </div>
+        <div class="pagination-controls" id="paginationControls">
+          <button type="button" id="prevPageBtn" class="btn-page" aria-label="Trang trước" disabled>&laquo; Trước</button>
+          <div class="page-numbers" id="pageNumbers">
+            <!-- Nút các trang render động từ JS -->
+          </div>
+          <button type="button" id="nextPageBtn" class="btn-page" aria-label="Trang sau" disabled>Sau &raquo;</button>
+        </div>
+      </nav>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer container">
+    <div class="footer-content glass-card">
+      <p>&copy; 2026 Weather & Travel Planner &bull; Xây dựng bằng HTML5, CSS3 và Vanilla JavaScript thuần phong cách Glassmorphism.</p>
+      <p class="footer-subtext">Dữ liệu thời tiết được mô phỏng phục vụ mục đích học tập và lập kế hoạch du lịch.</p>
+    </div>
+  </footer>
+
+  <!-- Script ứng dụng tách rời -->
+  <script src="js/script.js"></script>
+</body>
+</html>
